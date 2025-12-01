@@ -27,3 +27,7 @@ args = "bundle exec ruby bot.rb"
 
 [workflows.workflow.metadata]
 outputType = "console"
+
+[deployment]
+deploymentTarget = "vm"
+run = ["bundle", "exec", "ruby", "bot.rb"]
