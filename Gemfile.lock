@@ -41,6 +41,7 @@ GEM
       http-cookie (>= 1.0.2, < 2.0)
       mime-types (>= 1.16, < 4.0)
       netrc (~> 0.8)
+    tradsim (0.5.1)
     websocket (1.2.11)
     websocket-client-simple (0.9.0)
       base64
@@ -63,6 +64,7 @@ PLATFORMS
 
 DEPENDENCIES
   discordrb
+  tradsim
 
 BUNDLED WITH
    2.7.2
