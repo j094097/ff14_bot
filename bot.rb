@@ -3,7 +3,7 @@ require 'discordrb'
 
 # 將你在 Discord 申請的機器人 Token 帶入並實例化機器人
 # 記得替換 Bot Token 為你自己的 Bot Token
-DISCORD_TOKEN = os.environ['DISCORD_TOKEN']
+DISCORD_TOKEN = ENV['DISCORD_TOKEN']
 
 bot = Discordrb::Bot.new token: DISCORD_TOKEN
 
