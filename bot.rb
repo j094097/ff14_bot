@@ -11,9 +11,16 @@ require 'csv'
 require 'socket'
 
 port = ENV.fetch('PORT', 4000).to_i
-TCPServer.new port
+server = TCPServer.new port
 
 puts "Listenting on port #{port}..."
+
+loop do
+  client = server.accept # Wait for a client to connect
+  client.puts 'Hello World'
+  client.puts "It is #{Time.now}"
+  client.close
+end
 
 # 將你在 Discord 申請的機器人 Token 帶入並實例化機器人
 # 記得替換 Bot Token 為你自己的 Bot Token
