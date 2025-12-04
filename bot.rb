@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # 調用在 Gemfile 設定並安裝的 disocrd API 函式庫
 require 'discordrb'
 # 調用在 Gemfile 設定並安裝的 tradsim 函式庫
@@ -15,12 +17,13 @@ bot = Discordrb::Commands::CommandBot.new token: DISCORD_TOKEN, prefix: '!'
 
 key_command = '!問灰機 '
 default_url = 'https://ff14.huijiwiki.com/wiki/'
+custom_search_url = 'https://ff14.huijiwiki.com/index.php?title=特殊%3A搜索&profile=default&fulltext=1&search='
 error_message = '請輸入正確的指令 !問灰機 幫助 或 !問FF 幫助'
 help_message = '!問灰機 類型 名稱'
 in_game_items = []
 in_game_quests = []
 in_game_dungons = []
-in_game_types = %w[副本 物品 配方 任務]
+in_game_types = %w[副本 物品 配方 任務 搜尋]
 in_game_formulas = %w[刻木匠配方列表 锻铁匠配方列表 铸甲匠配方列表 雕金匠配方列表 制革匠配方列表 裁衣匠配方列表 炼金术士配方列表 烹调师配方列表]
 
 CSV.foreach('ff14_item.csv') do |row|
@@ -38,6 +41,7 @@ end
 # 將 CSV 讀取的資料中空白的資料清除
 in_game_items = in_game_items.compact
 in_game_quests = in_game_quests.compact
+in_game_dungons = in_game_dungons.compact
 
 def search_items(items, name, ask_type, default_url)
   match_items = items.select { |item| item[0].include?(name) }
@@ -64,8 +68,7 @@ end
 def list_formulas(formulas, default_url)
   formulas.map { |f| "- #{default_url}#{f}" }.join("\n")
 end
-
-bot.command(:問灰機, aliases: [:問FF]) do |event, type, name|
+bot.command(:問灰機, aliases: %i[問FF 問ff]) do |event, type, name|
   ask_type = type.nil? ? nil : Tradsim.to_sim(type)
   ask_name = name.nil? ? nil : Tradsim.to_sim(name)
 
@@ -77,7 +80,8 @@ bot.command(:問灰機, aliases: [:問FF]) do |event, type, name|
             when '物品' then ask_name ? search_items(in_game_items, name, ask_type, default_url) : error_message
             when '任務' then ask_name ? search_quests(in_game_quests, name, ask_type, default_url) : error_message
             when '副本' then ask_name ? search_dungeons(in_game_dungons, name, default_url) : "- #{default_url}副本"
-            else error_message
+            when '搜尋' then ask_name ? "- #{custom_search_url}#{name}" : error_message
+            else "- #{custom_search_url}#{type}"
             end
 
   event.respond results
