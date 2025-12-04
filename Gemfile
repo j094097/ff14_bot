@@ -6,4 +6,4 @@ source "https://rubygems.org"
 
 gem 'discordrb'
 gem 'tradsim'
-gem 'csv', '~> 3.3', '>= 3.3.5'
+gem 'csv'

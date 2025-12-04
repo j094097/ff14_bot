@@ -2,6 +2,7 @@ GEM
   remote: https://rubygems.org/
   specs:
     base64 (0.3.0)
+    csv (3.2.6)
     discordrb (3.7.1)
       base64 (~> 0.2)
       discordrb-webhooks (~> 3.7.1)
@@ -55,7 +56,6 @@ PLATFORMS
   arm-linux-gnu
   arm-linux-musl
   arm64-darwin
-  ruby
   x86-linux-gnu
   x86-linux-musl
   x86_64-darwin
@@ -63,6 +63,7 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
+  csv
   discordrb
   tradsim
 
