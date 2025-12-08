@@ -8,6 +8,15 @@ require 'tradsim'
 # 調用在 Gemfile 設定並安裝的 csv 函式庫
 require 'csv'
 
+require 'webrick'
+Thread.new do
+  server = WEBrick::HTTPServer.new(Port: 3000)
+  server.mount_proc '/' do |_req, res|
+    res.body = 'Bot is alive!'
+  end
+  server.start
+end
+
 # 將你在 Discord 申請的機器人 Token 帶入並實例化機器人
 # 記得替換 Bot Token 為你自己的 Bot Token
 DISCORD_TOKEN = ENV['DISCORD_TOKEN']
