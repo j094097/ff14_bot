@@ -10,8 +10,19 @@ require 'csv'
 # 調用在 Gemfile 設定並安裝的 socket 函式庫
 require 'socket'
 
-TCPServer.new('localhost', ENV['PORT'] || 3000)
-puts 'Server is running...'
+port = ENV.fetch('PORT', 3000).to_i
+TCPServer.new port
+
+puts "Listenting on port #{port}..."
+
+# loop do
+#   Thread.start(server.accept) do |client|
+#     client.puts 'Hello World'
+#     client.puts "It is #{Time.now}"
+#     sleep 5
+#     client.close
+#   end
+# end
 
 # 將你在 Discord 申請的機器人 Token 帶入並實例化機器人
 # 記得替換 Bot Token 為你自己的 Bot Token
