@@ -10,7 +10,7 @@ require 'csv'
 
 require 'webrick'
 Thread.new do
-  server = WEBrick::HTTPServer.new(Port: 3000)
+  server = WEBrick::HTTPServer.new(Port: 10_000)
   server.mount_proc '/' do |_req, res|
     res.body = 'Bot is alive!'
   end
@@ -77,6 +77,7 @@ end
 def list_formulas(formulas, default_url)
   formulas.map { |f| "- #{default_url}#{f}" }.join("\n")
 end
+
 bot.command(:問灰機, aliases: %i[問FF 問ff]) do |event, type, name|
   ask_type = type.nil? ? nil : Tradsim.to_sim(type)
   ask_name = name.nil? ? nil : Tradsim.to_sim(name)
