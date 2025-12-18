@@ -7,4 +7,4 @@ source "https://rubygems.org"
 gem 'discordrb'
 gem 'tradsim'
 gem 'csv'
-# gem 'webrick'
+gem 'webrick'
