@@ -23,6 +23,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
+args = "bundle install"
 args = "bundle exec ruby bot.rb"
 
 [workflows.workflow.metadata]
