@@ -2,6 +2,7 @@
 
 source "https://rubygems.org"
 
+ruby "3.2.8"
 # gem "rails"
 # gem "openssl"
 gem 'discordrb'
