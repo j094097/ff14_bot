@@ -24,16 +24,19 @@ DISCORD_TOKEN = ENV['DISCORD_TOKEN']
 # 在 Discord 頻道中對機器人說話後機器人會回應的行為設定
 bot = Discordrb::Commands::CommandBot.new token: DISCORD_TOKEN, prefix: '!'
 
+# puts 123
 key_command = '!問灰機 '
+infomation_url = 'https://docs.google.com/spreadsheets/d/1kQhJL5sa3X-W-AOxpVN1FDuu6RQmE7AaCu016darzCk/edit?gid=1409014202#gid=1409014202'
 default_url = 'https://ff14.huijiwiki.com/wiki/'
+market_url = 'https://universalis.app/market/'
+fishcake_url = 'https://fish.ffmomola.com/'
 custom_search_url = 'https://ff14.huijiwiki.com/index.php?title=特殊%3A搜索&profile=default&fulltext=1&search='
 error_message = '請輸入正確的指令 !問灰機 幫助 或 !問FF 幫助'
 help_message = '!問灰機 類型 名稱'
 in_game_items = []
 in_game_quests = []
 in_game_dungons = []
-in_game_types = %w[副本 物品 配方 任務 搜尋]
-in_game_formulas = %w[刻木匠配方列表 锻铁匠配方列表 铸甲匠配方列表 雕金匠配方列表 制革匠配方列表 裁衣匠配方列表 炼金术士配方列表 烹调师配方列表]
+in_game_types = %w[副本 物品 配方 任務 查價 搜尋]
 
 CSV.foreach('ff14_item.csv') do |row|
   in_game_items << row
@@ -46,6 +49,11 @@ end
 CSV.foreach('ff14_dungeons.csv') do |row|
   in_game_dungons << row
 end
+
+in_game_market_items = CSV.read('ff14_market_item.csv', headers: true).map(&:to_h)
+in_game_item_recipes = CSV.read('ff14_item_recipe.csv', headers: true).map(&:to_h)
+
+# puts in_game_item_recipes
 
 # 將 CSV 讀取的資料中空白的資料清除
 in_game_items = in_game_items.compact
@@ -70,6 +78,15 @@ def search_dungeons(dungeons, name, default_url)
   "#{results}\n共找到 #{match_dungeons.length} 筆結果(僅顯示前 10 筆)"
 end
 
+def search_market(items, name, market_url, vague)
+  match_items = case vague
+                when 1 then items.select { |item| item['name']&.include?(name) }
+                when 0 then items.select { |item| item['name']&.eql?(name) }
+                end
+  results = match_items.to_a[0..9].map { |item| "- [#{item['name']}](#{market_url}#{item['id']})" }.join("\n")
+  "#{results}\n共找到  #{match_items.length} 筆結果(僅顯示前 10 筆)"
+end
+
 def list_types(types, key_command)
   types.map { |t| "- #{key_command}#{t}" }.join("\n")
 end
@@ -78,7 +95,46 @@ def list_formulas(formulas, default_url)
   formulas.map { |f| "- #{default_url}#{f}" }.join("\n")
 end
 
-bot.command(:問灰機, aliases: %i[問FF 問ff]) do |event, type, name|
+def serach_recipe(items, recipes, name, market_url)
+  match_items = items.select { |item| item['name']&.eql?(name) }
+  if match_items.any?
+    match_recipes = recipes.select { |recipe| recipe['item_id']&.eql?(match_items[0]['id']) }
+    results = ''
+    (0..7).each do |i|
+      next unless match_recipes[0]["item_ingredient_#{i}"].to_i.positive?
+
+      id = match_recipes[0]["item_ingredient_#{i}"]
+      amount = match_recipes[0]["amount_ingredient_#{i}"]
+      temp_item = items.select { |item| item['id']&.eql? id }
+      results += "- [#{temp_item[0]['name']} #{amount}個](#{market_url}#{id})\n"
+
+      results += sub_search_recipe(items, recipes, id, market_url, 1)
+    end
+    "#{results}\n"
+  else
+    '請輸入正確配方名稱'
+  end
+end
+
+def sub_search_recipe(items, recipes, id, market_url, level)
+  match_recipes = recipes.select { |recipe| recipe['item_id']&.eql?(id) }
+  results = ''
+  if match_recipes.any?
+    (0..5).each do |i|
+      next unless match_recipes[0]["item_ingredient_#{i}"].to_i.positive?
+
+      temp_id = match_recipes[0]["item_ingredient_#{i}"]
+      amount = match_recipes[0]["amount_ingredient_#{i}"]
+      temp_item = items.select { |item| item['id']&.eql? temp_id }
+      results += "* [#{temp_item[0]['name']} #{amount}個](#{market_url}#{temp_id})\n".prepend('  ' * level)
+      results += sub_search_recipe(items, recipes, temp_id, market_url, level + 1)
+    end
+  end
+  results
+end
+
+bot.command(:問灰機, aliases: %i[問FF 問ff]) do |event, type, name, vague|
+  vague = vague.nil? ? 1 : vague.to_i
   ask_type = type.nil? ? nil : Tradsim.to_sim(type)
   ask_name = name.nil? ? nil : Tradsim.to_sim(name)
 
@@ -86,7 +142,20 @@ bot.command(:問灰機, aliases: %i[問FF 問ff]) do |event, type, name|
             when nil then error_message
             when '幫助' then help_message
             when '類型' then list_types(in_game_types, key_command)
-            when '配方' then list_formulas(in_game_formulas, default_url)
+            when '配方' then if ask_name
+                             serach_recipe(in_game_market_items, in_game_item_recipes, name,
+                                           market_url)
+                           else
+                             error_message
+                           end
+            when '表單' then infomation_url
+            when '魚糕' then fishcake_url
+            when '查價', '價格', 'M', 'm' then if ask_name
+                                             search_market(in_game_market_items, name, market_url,
+                                                           vague)
+                                           else
+                                             error_message
+                                           end
             when '物品' then ask_name ? search_items(in_game_items, name, ask_type, default_url) : error_message
             when '任務' then ask_name ? search_quests(in_game_quests, name, ask_type, default_url) : error_message
             when '副本' then ask_name ? search_dungeons(in_game_dungons, name, default_url) : "- #{default_url}副本"
