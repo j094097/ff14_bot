@@ -14,7 +14,7 @@ GEM
       rest-client (>= 2.0.0)
     domain_name (0.6.20240107)
     event_emitter (0.2.6)
-    ffi (1.16.3)
+    ffi (1.17.3-x86_64-linux-gnu)
     http-accept (1.7.0)
     http-cookie (1.1.0)
       domain_name (~> 0.5)
@@ -47,12 +47,8 @@ PLATFORMS
 DEPENDENCIES
   csv
   discordrb
-  ffi (< 1.17.0)
   tradsim
   webrick
-
-RUBY VERSION
-   ruby 3.2.8p263
 
 BUNDLED WITH
    2.3.15
