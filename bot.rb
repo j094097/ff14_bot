@@ -83,6 +83,10 @@ def search_market(items, name, market_url, vague)
                 when 1 then items.select { |item| item['name']&.include?(name) }
                 when 0 then items.select { |item| item['name']&.eql?(name) }
                 end
+<<<<<<< HEAD
+=======
+  puts match_items
+>>>>>>> 3ea135d9e7d8e941e639db75c93fe2eb0de2ae58
   results = match_items.to_a[0..9].map { |item| "- [#{item['name']}](#{market_url}#{item['id']})" }.join("\n")
   "#{results}\n共找到  #{match_items.length} 筆結果(僅顯示前 10 筆)"
 end
