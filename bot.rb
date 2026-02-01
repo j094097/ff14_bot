@@ -9,6 +9,10 @@ require 'tradsim'
 require 'csv'
 # pretty-printer
 require 'pp'
+# 字串比對
+require 'string/similarity'
+
+using String::SimilarityRefinements
 
 # require 'webrick'
 # Thread.new do
@@ -56,10 +60,23 @@ $in_game_item_recipes = CSV.read('ff14_item_recipe.csv', headers: true).map(&:to
 $in_game_quests = $in_game_quests.compact
 $in_game_dungons = $in_game_dungons.compact
 
+def search_similarity(items, name)
+  temp = []
+  length = name.length
+
+  temp = items.select { 
+    |item| item['tc_name'][0, length].levenshtein_distance_to(name) <= 1 || 
+            item['sc_name'][0, length].levenshtein_distance_to(Tradsim.to_sim(name)) <= 1 
+  }
+
+  temp.any? ? "請問是否在搜尋 #{temp.first['tc_name']} (#{temp.first['sc_name']}) ?" : "查無結果"
+end
+
 def search_items(name, ask_type)
   match_items = $in_game_items.select { |item| item['tc_name'].include?(name) || item['sc_name'].include?(Tradsim.to_sim(name)) }
   results = match_items[0..9].map { |item| "- #{$default_url}#{ask_type}:#{item['sc_name']} (#{item['tc_name']})" }.join("\n")
-  "#{results}\n共找到 #{match_items.length} 筆結果(僅顯示前 10 筆)"
+
+  results.empty? ? search_similarity($in_game_items, name) : "#{results}\n共找到 #{match_items.length} 筆結果(僅顯示前 10 筆)"
 end
 
 def search_market(name, vague)
@@ -68,7 +85,10 @@ def search_market(name, vague)
                 when 0 then $in_game_market_items.select { |item| item['tc_name'].eql?(name) || item['sc_name'].eql?(Tradsim.to_sim(name)) }
                 end
   results = match_items.to_a[0..9].map { |item| "- [#{item['tc_name']}](#{$market_url}#{item['id']}) (#{item['sc_name']})" }.join("\n")
-  "#{results}\n共找到  #{match_items.length} 筆結果(僅顯示前 10 筆)"
+
+  results.empty? ? search_similarity($in_game_market_items, name) : "#{results}\n共找到 #{match_items.length} 筆結果(僅顯示前 10 筆)"
+
+  # "#{results}\n共找到  #{match_items.length} 筆結果(僅顯示前 10 筆)"
 end
 
 def serach_recipe(name)

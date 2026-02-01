@@ -32,6 +32,7 @@ GEM
       http-cookie (>= 1.0.2, < 2.0)
       mime-types (>= 1.16, < 4.0)
       netrc (~> 0.8)
+    string-similarity (2.1.0)
     tradsim (0.5.1)
     webrick (1.9.2)
     websocket (1.2.11)
@@ -47,6 +48,7 @@ PLATFORMS
 DEPENDENCIES
   csv
   discordrb
+  string-similarity
   tradsim
   webrick
 
