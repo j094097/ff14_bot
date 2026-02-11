@@ -12,6 +12,9 @@ require 'pp'
 # 字串比對
 require 'string/similarity'
 
+require 'active_support'
+require 'active_support/core_ext'
+
 using String::SimilarityRefinements
 
 # require 'webrick'
@@ -73,22 +76,44 @@ def search_similarity(items, name)
 end
 
 def search_items(name, ask_type)
-  match_items = $in_game_items.select { |item| item['tc_name'].include?(name) || item['sc_name'].include?(Tradsim.to_sim(name)) }
-  results = match_items[0..9].map { |item| "- #{$default_url}#{ask_type}:#{item['sc_name']} (#{item['tc_name']})" }.join("\n")
+  match_items = $in_game_items.select { |item| item['tc_name'].include?(name) || item['sc_name'].include?(Tradsim.to_sim(name)) || item['alias'].eql?(name) }
+
+  results = []
+
+  match_items.to_a[0..9].each do |item|
+    if item['alias'].blank?
+      results << "- [#{item['tc_name']}](#{$default_url}#{ask_type}:#{item['sc_name']})"
+    else
+      results << "- [#{item['tc_alias_name']}](#{$default_url}#{ask_type}:#{item['sc_name']})"
+    end
+  end
+
+  results = results.join("\n")
+  # results = match_items[0..9].map { |item| "- #{$default_url}#{ask_type}:#{item['sc_name']} (#{item['tc_name']})" }.join("\n")
 
   results.empty? ? search_similarity($in_game_items, name) : "#{results}\n共找到 #{match_items.length} 筆結果(僅顯示前 10 筆)"
 end
 
 def search_market(name, vague)
   match_items = case vague
-                when 1 then $in_game_market_items.select { |item| item['tc_name'].include?(name) || item['sc_name'].include?(Tradsim.to_sim(name)) }
-                when 0 then $in_game_market_items.select { |item| item['tc_name'].eql?(name) || item['sc_name'].eql?(Tradsim.to_sim(name)) }
+                when 1 then $in_game_market_items.select { |item| item['tc_name'].include?(name) || item['sc_name'].include?(Tradsim.to_sim(name)) || item['alias'].eql?(name) }
+                when 0 then $in_game_market_items.select { |item| item['tc_name'].eql?(name) || item['sc_name'].eql?(Tradsim.to_sim(name)) || item['alias'].eql?(name) }
                 end
-  results = match_items.to_a[0..9].map { |item| "- [#{item['tc_name']}](#{$market_url}#{item['id']}) (#{item['sc_name']})" }.join("\n")
+  results = []
+
+  match_items.to_a[0..9].each do |item|
+    if item['alias'].blank?
+      results << "- [#{item['tc_name']}](#{$market_url}#{item['id']}) (#{item['sc_name']})"
+    else
+      results << "- [#{item['tc_alias_name']}](#{$market_url}#{item['id']}) (#{item['sc_alias_name']})"
+    end
+  end
+
+  results = results.join("\n")
+
+  # results = match_items.to_a[0..9].map { |item| "- [#{item['tc_name']}](#{$market_url}#{item['id']}) (#{item['sc_name']})" }.join("\n")
 
   results.empty? ? search_similarity($in_game_market_items, name) : "#{results}\n共找到 #{match_items.length} 筆結果(僅顯示前 10 筆)"
-
-  # "#{results}\n共找到  #{match_items.length} 筆結果(僅顯示前 10 筆)"
 end
 
 def serach_recipe(name)
@@ -169,10 +194,10 @@ bot.command(:問灰機, aliases: %i[問FF 問ff FF ff]) do |event, type, name, v
                                            else
                                              error_message
                                            end
-            when '物品' then ask_name ? search_items(name, ask_type) : error_message
+            when '物品', 'I', 'i' then ask_name ? search_items(name, ask_type) : error_message
             when '任務' then ask_name ? search_quests(name, ask_type) : error_message
             when '副本' then ask_name ? search_dungeons(name) : "- #{$default_url}副本"
-            when '搜尋' then ask_name ? "- #{custom_search_url}#{name}" : error_message
+            when '搜尋', 'S', 's' then ask_name ? "- #{custom_search_url}#{name}" : error_message
             else "- #{custom_search_url}#{type}"
             end
 
